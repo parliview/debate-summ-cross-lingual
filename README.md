@@ -1,138 +1,154 @@
-# Parliview Multilingual
+# Parliamentary Cross-Lingual Debate Summarisation Experiments
 
-A comprehensive multilingual analysis project for parliamentary debates and interventions, featuring support for over 100 languages.
+A research system for evaluating the quality and accuracy of structured summaries of European Parliament debates across different languages and summarisation approaches.
 
 ## Overview
 
-This project analyzes parliamentary debates and interventions across multiple languages, providing insights into multilingual political discourse. The system processes debate data, generates summaries, and evaluates content across different languages.
+This project evaluates:
+- **Summary Quality**: How well do different models generate structured summaries of parliamentary speeches?
+- **Language Effects**: How does speaking in different languages affect summarisation quality and accuracy?
+- **Approach Comparison**: Which summarisation methods (hierarchical, incremental, zero-shot) work best?
+- **Cross-Language Performance**: How well do summaries work when speakers use their native languages vs. English?
+
+The system processes multilingual European Parliament debates where speakers may speak in their native languages (French, German, Spanish, etc.) but English translations are available, allowing for systematic comparison of summarisation quality across languages.
 
 ## Features
 
-- **Multilingual Support**: Analysis across 100+ languages including English, French, German, Japanese, Chinese, Spanish, and many more
-- **Debate Processing**: Automated processing of parliamentary interventions and debates
-- **Summary Generation**: AI-powered summarization of debate content
-- **Position Reconstruction**: Analysis of political positions and stances
-- **Evaluation Metrics**: Comprehensive evaluation using BERTScore and other metrics
+- **Multiple Summarisation Approaches**: 
+  - Structured vs unstructured summarisation
+  - Hierarchical summarisation with issue/position/argument/proposal breakdown
+  - Zero-shot summarisation across languages
+- **Multiple Model Support**: Ollama (local), Claude, and GPT integration for comparative evaluation
+- **Domain Specific Evaluation**:
+  - Local reasoning model (Qwen) extracts speaker positions from debate summaries
+  - Multilingual BERTScore to compare extracted positions and original interventions
+
+
+## Usage
+
+Run experiments and evaluation scripts from the `experiments/` directory:
+
+```sh
+# 1. Generate structured summaries of individual parliamentary interventions
+# Compare performance across different models and languages
+python experiments/summarise_interventions.py \
+    --input-dir data/debates \
+    --model-type 'claude' \
+    --model-name 'claude-3-sonnet-20240229' \
+    --structured 
+
+# 2. Aggregate intervention summaries into comprehensive debate reports
+# Test different aggregation approaches (hierarchical, incremental, zero-shot)
+python experiments/generate_debate_summaries.py \
+    --input-dir data/debates \
+    --model-type 'claude' \
+    --model-name 'claude-3-sonnet-20240229' \
+    --structured \
+    --hierarchical
+
+# 3. Reconstruct individual speaker positions from debate summaries
+# Evaluate how well positions can be reconstructed from summaries
+python experiments/reconstruct_positions.py \
+    --model-name 'qwen3:30b-a3b' \
+    --model-type 'ollama' \
+    --input-dir data/debates
+
+# 4. Evaluate summarisation quality and language effects using BERTScore
+jupyter notebook eval.ipynb
+```
 
 ## Project Structure
 
 ```
 parliview-multilingual/
-├── data/                          # Dataset and debate files
-│   ├── debates/                   # Parliamentary debate data
-│   │   └── CRE-*/                 # Individual debate sessions
-│   │       ├── interventions/     # Debate interventions
-│   │       ├── summaries/         # Generated summaries
-│   │       └── reports/           # Analysis reports
+├── data/                          # Parliamentary debate dataset
+│   ├── debates/                   # Individual debate sessions (CRE-*)
+│   │   ├── CRE-20050221-ITEM-013/
+│   │   │   ├── interventions/     # Raw intervention data (JSON)
+│   │   │   ├── summaries/         # Generated intervention summaries
+│   │   │   ├── reports/           # Generated debate reports
+│   │   │   └── reconstructed_summaries/  # Reconstructed positions
+│   │   └── ...
 │   ├── claude_data.csv           # Claude analysis data
 │   └── ep_mep_activities.json    # MEP activity data
-├── experiments/                   # Analysis and processing scripts
-│   ├── generate_debate_summaries.py
-│   ├── reconstruct_positions.py
-│   ├── scrape_debates.py
-│   ├── summarise_interventions.py
-│   └── utils/                     # Utility functions
+├── experiments/                   # Main experiment scripts
+│   ├── generate_debate_summaries.py    # Debate-level summarisation
+│   ├── summarise_interventions.py     # Intervention summarisation
+│   ├── reconstruct_positions.py       # Position reconstruction
+│   ├── scrape_debates.py             # Data scraping utilities
+│   └── utils/                         # Utility modules
+│       ├── generator.py              # Debate summary generation
+│       ├── summariser.py             # Intervention summarisation
+│       ├── reconstructor.py          # Position reconstruction
+│       ├── bertscore.py              # Evaluation metrics
+│       ├── formatting.py             # Data formatting
+│       └── prompts.py                # LLM prompts
 ├── figures/                       # Generated visualizations
-├── *.ipynb                        # Jupyter notebooks for analysis
+├── eval.ipynb                     # Evaluation notebook
+├── exploration.ipynb              # Data exploration notebook
+├── languages.ipynb                # Language analysis notebook
 └── counts.json                    # Language distribution data
 ```
 
-## Language Support
+## Data Structure
 
-The project supports analysis in over 100 languages, with the following having the highest token counts:
+The `data/debates/` directory contains European Parliament debate sessions with the following structure:
 
-- **English (EN)**: 7,047,545 tokens
-- **Cebuano (CEB)**: 6,116,122 tokens  
-- **German (DE)**: 3,045,501 tokens
-- **French (FR)**: 2,705,761 tokens
-- **Swedish (SV)**: 2,615,554 tokens
-- **Chinese (ZH)**: 1,497,199 tokens
-- **Japanese (JA)**: 1,471,096 tokens
-- **Spanish (ES)**: 2,057,696 tokens
-- **Dutch (NL)**: 2,195,624 tokens
-- **Russian (RU)**: 2,061,152 tokens
+```
+data/debates/CRE-20060118-ITEM-008/
+├── interventions/                 # Raw parliamentary speech data
+│   ├── 3-230.json               # Individual speech files with speaker, text, language
+│   ├── 3-231.json               # Contains: speaker, english, original, lang, agenda_item
+│   └── ...
+├── summaries/                    # Generated structured summaries of interventions
+│   ├── 3-230-claude-sonnet-4-20250514-structured.json
+│   ├── 3-231-claude-sonnet-4-20250514-structured.json
+│   └── ...                      # Contains: headline, issueSum, positionSum, argSum, propSum, quotes
+├── reports/                      # Generated comprehensive debate reports
+│   ├── CRE-20060118-ITEM-008_claude_structured_en.json
+│   ├── CRE-20060118-ITEM-008_claude_structured_org.json
+│   └── ...                      # Contains: contributions, summary, metadata
+└── reconstructed_summaries/      # Reconstructed individual speaker positions
+    └── qwen3:30b-a3b/
+        ├── CRE-20060118-ITEM-008_claude_structured_en.json
+        └── CRE-20060118-ITEM-008_claude_structured_org.json
+```
 
-## Getting Started
+### Data Format
 
-### Prerequisites
+**Intervention files** contain:
+- `speaker`: Name and party of the speaker
+- `english`: English translation of the speech
+- `original`: Original language version of the speech
+- `lang`: Language code (EN, FR, DE, etc.)
+- `agenda_item`: Topic of the debate
+- `debate_id`: Unique identifier for the debate session
+- `intervention_id`: Unique identifier for the speech
 
-- Python 3.8+
-- Jupyter Notebook
-- Required Python packages (see requirements.txt)
+## Installation
 
-### Installation
-
-1. Clone the repository:
+1. **Clone the repository:**
 ```bash
 git clone https://github.com/yourusername/parliview-multilingual.git
 cd parliview-multilingual
 ```
 
-2. Install dependencies:
+2. **Install dependencies:**
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Run the analysis notebooks:
+3. **Set up environment variables:**
 ```bash
-jupyter notebook
+# For Ollama (local models)
+export OLLAMA_API_URL="http://localhost:11434/api/generate"
+export OLLAMA_MODEL="mistral"
+
+# For Claude API
+export ANTHROPIC_API_KEY="your-api-key"
+export CLAUDE_MODEL="claude-3-sonnet-20240229"
+
+# For OpenAI API
+export OPENAI_API_KEY="your-api-key"
+export GPT_MODEL="gpt-4-turbo-preview"
 ```
-
-## Usage
-
-### Running Analysis
-
-1. **Debate Summarization**:
-```bash
-python experiments/generate_debate_summaries.py
-```
-
-2. **Position Reconstruction**:
-```bash
-python experiments/reconstruct_positions.py
-```
-
-3. **Intervention Summarization**:
-```bash
-python experiments/summarise_interventions.py
-```
-
-### Jupyter Notebooks
-
-- `exploration.ipynb`: Data exploration and analysis
-- `eval.ipynb`: Evaluation metrics and results
-- `languages.ipynb`: Language-specific analysis
-
-## Data
-
-The project includes parliamentary debate data from various sessions, with interventions, summaries, and reports for each debate session. The data is organized by session ID (e.g., CRE-20050221-ITEM-013).
-
-## Evaluation
-
-The project includes comprehensive evaluation metrics:
-- BERTScore evaluation for summary quality
-- Hierarchical evaluation approaches
-- Zero-shot evaluation across languages
-- Coefficient analysis for different models
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- European Parliament data sources
-- Multilingual NLP community
-- Contributors and researchers
-
-## Contact
-
-For questions or contributions, please open an issue or contact the maintainers.

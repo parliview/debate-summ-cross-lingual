@@ -146,4 +146,10 @@ Thumbs.db
 # Data files (uncomment if you want to exclude large data files)
 # *.csv
 # *.json
-# data/
+data/
+
+# Large data files
+data/ep_mep_activities.json
+
+# notebooks
+exploration.ipynb
