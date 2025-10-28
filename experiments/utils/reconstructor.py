@@ -14,9 +14,17 @@ async def reconstruct_debate(debate_report: Dict[str ,Any], model_type: Literal[
     Reconstruct the debate from the report.
     """
     contributions = debate_report['contributions']
+    reconstructed_positions = {}
     updated_contributions = []
     for contribution in contributions:
-        updated_contributions.append(await reconstruct_speaker_position(debate_report, contribution, model_type, model_name))
+        speaker_name = contribution['speaker']
+        updated_contribution = contribution.copy()
+        if speaker_name in reconstructed_positions:
+            updated_contribution['reconstructed_position'] = reconstructed_positions[speaker_name]
+        else:
+            updated_contribution = await reconstruct_speaker_position(debate_report, contribution, model_type, model_name)
+            reconstructed_positions[speaker_name] = updated_contribution['reconstructed_position']
+        updated_contributions.append(updated_contribution)
 
     return updated_contributions
 

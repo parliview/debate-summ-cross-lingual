@@ -177,7 +177,9 @@ async def main(model_type: str, model_name: str, structured: bool, incremental: 
 
             # if cooldown:
                 # if (i+1) % 2 == 0:
-            await asyncio.sleep(10)
+            
+            if model_type not in ['ollama', 'gpt']:
+                await asyncio.sleep(10)
 
 if __name__ == "__main__":
     # Get command line arguments

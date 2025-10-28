@@ -92,7 +92,7 @@ async def main(structured: bool, model_type: Literal["ollama", "claude", "gpt"],
             
             # Add wait time every 100 iterations
             if cooldown:
-                if (i + 1) % 100 == 0:
+                if (i + 1) % 20 == 0:
                     await asyncio.sleep(30)  # Wait 30 seconds
 
 if __name__ == "__main__":

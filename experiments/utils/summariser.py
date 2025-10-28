@@ -58,7 +58,7 @@ async def generate_summary_with_claude(system_prompt: str, user_prompt: str, mod
     try:
         message = await client.messages.create(
             model=model,
-            max_tokens=4000,
+            max_tokens=8000,
             system=system_prompt,
             messages=[
                 {"role": "user", "content": user_prompt}
@@ -79,8 +79,7 @@ async def generate_summary_with_gpt(system_prompt: str, user_prompt: str, model:
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
-            ],
-            max_tokens=4000
+            ]
         )
         return response.choices[0].message.content
     except Exception as e:
