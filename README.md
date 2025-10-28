@@ -5,7 +5,7 @@ A research system for evaluating the quality and accuracy of structured summarie
 ## Overview
 
 This project evaluates:
-- **Summary Quality**: How well do different models generate structured summaries of parliamentary speeches?
+- **Summary Fairness**: How well do different models generate structured summaries of parliamentary speeches? How faithfully do those summaries represent the contributions of different speakers? 
 - **Language Effects**: How does speaking in different languages affect summarisation quality and accuracy?
 - **Approach Comparison**: Which summarisation methods (hierarchical, incremental, zero-shot) work best?
 - **Cross-Language Performance**: How well do summaries work when speakers use their native languages vs. English?
